@@ -14,18 +14,27 @@ import numpy as np
 import tensorflow as tf
 from cv2 import cv2
 import warnings
+from tensorflow.python.client import device_lib
 
 def ignoreWarnings():
   os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
   # warnings.filterwarnings('ignore')
 
 def useDevice(device = 'GPU'):
+  print(f'using {device}')
+  ignoreWarnings()
   if device == "GPU":
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    gpu = device_lib.list_local_devices()[-1]
+    print(gpu.physical_device_desc)
   elif device == "CPU":
     os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+    gpu = device_lib.list_local_devices()[1]
+    print(gpu.physical_device_desc)
   else:
     raise Exception('enter a valid device name')
+
+  
     # exit
 
 
@@ -35,10 +44,10 @@ def crnt_time():
   return current_time
 
 def SaveModel(model, time_stamp):
-  savepath = f'/model/{time_stamp}/U-Net.h5'
+  savepath = f'model/{time_stamp}/U-Net.hdf5'
   model.save(savepath)
   print(f'time stamp is {time_stamp}, note it down as it may be used in future to recover models.')
-  print(f'model is saved at /model/{time_stamp}/U-Net.h5')
+  print(f'model is saved at /model/{time_stamp}')
 
 def CreateUnet(IMG_SIZE):
 
@@ -99,15 +108,15 @@ def CreateUnet(IMG_SIZE):
   outputs = tf.keras.layers.Conv2D(1, (1, 1), activation = 'sigmoid')(c9)
 
   model = tf.keras.Model(inputs = [inputs], outputs = [outputs])
-  model.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = [tf.keras.metrics.MeanIoU(num_classes=6)])
+  model.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = [tf.keras.metrics.MeanIoU(num_classes = 6)])
 
   return model
 
 def main():
   ignoreWarnings()
   useDevice('CPU')
-  IMG_HEIGHT = 2**9
-  IMG_WIDTH = 2**9
+  IMG_HEIGHT = 2**7
+  IMG_WIDTH = 2**7
   CHANNELS = 3
   IMG_SIZE = (IMG_HEIGHT, IMG_WIDTH, CHANNELS)
   model = CreateUnet(IMG_SIZE)

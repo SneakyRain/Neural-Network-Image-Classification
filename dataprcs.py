@@ -94,63 +94,84 @@ def InvertLabel(labeled_img):
 
   return img
 
-def CreateData():
-  
-  impath = '/media/aditya/DATA/Test/Satellite Images/'
-  file_names = os.listdir(f'{impath}/Potsdam/Raw Data/LabelsForParticipants')
+def CreateData(IMG_SIZE):
 
-  X_train = np.zeros((len(file_names), 2**12, 2**12, 3))
-  y_train = np.zeros((len(file_names), 2**12, 2**12))
+  if os.path.isdir('raw_data') == False:
+        os.mkdir('raw_data')
+        os.mkdir('raw_data/Label')
+        os.mkdir('raw_data/RGB')
+    
+  if os.path.isdir('data') == False:
+      os.mkdir('data')
+      os.mkdir('data/Label')
+      os.mkdir('data/RGB')
+  
+  (IMG_HEIGHT, IMG_WIDTH, CHANNELS) = IMG_SIZE
+  numofSamp = int(2**24/(IMG_HEIGHT*IMG_WIDTH))
+
+  impath = 'data'
+  file_names = os.listdir(f'{impath}/Label/')
+
+  X_train = np.zeros((IMG_HEIGHT, IMG_WIDTH, CHANNELS))
+  y_train = np.zeros((IMG_HEIGHT, IMG_WIDTH))
 
   pbar = tqdm(total = len(file_names), desc = 'Reading Data', unit = 'files')
 
   for file, i in zip(file_names, range(len(file_names))):
     #Preparing the X_train
     image_file = file.split('_')
-    image_file[-1] = 'IRRG.tif'
+    image_file[-1] = 'RGB.tif'
     image_file = ('_').join(image_file)
     
 
-    if f'{image_file}.npy' in os.listdir(f'{impath}/data'):
-      image = np.load(f'{impath}/data/{image_file}.npy')
+    if f'{image_file}.npy' in os.listdir('raw_data/RGB'):
+      image = np.load(f'raw_data/RGB/{image_file}.npy')
     else:
-      image = cv2.imread(f'{impath}/Potsdam/Raw Data/IRRG/{image_file}')
+      image = cv2.imread(f'{impath}/RGB/{image_file}')
       image = cv2.resize(image, (2**12, 2**12))
       image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-      np.save(f'{impath}/data/{image_file}.npy', image)
+      np.save(f'raw_data/RGB/{image_file}.npy', image)
 
-    if f'{file}.npy' in os.listdir(f'{impath}/data'):
-      label_image = np.load(f'{impath}/data/{file}.npy')
+    if f'{file}.npy' in os.listdir('raw_data/Label'):
+      label_image = np.load(f'raw_data/Label/{file}.npy')
     else:
-      label_image = cv2.imread(f'{impath}/Potsdam/Raw Data/LabelsForParticipants/{file}')
+      label_image = cv2.imread(f'{impath}/Label/{file}')
       label_image = cv2.resize(label_image, (2**12, 2**12))
       label_image = cv2.cvtColor(label_image, cv2.COLOR_BGR2RGB)
       label_image = CreateLabel(label_image)
-      np.save(f'{impath}/data/{file}.npy', label_image)
+      np.save(f'raw_data/Label/{file}.npy', label_image)
     
-    X_train[i] = image
-    y_train[i] = label_image
-
+    if i ==0:
+      X_train = image.reshape((numofSamp, IMG_HEIGHT, IMG_WIDTH, CHANNELS))
+      y_train = label_image.reshape((numofSamp, IMG_HEIGHT, IMG_WIDTH))
+    else:
+      image = image.reshape((numofSamp, IMG_HEIGHT, IMG_WIDTH, CHANNELS))
+      label_image = label_image.reshape((numofSamp, IMG_HEIGHT, IMG_WIDTH))
+      X_train = np.append(X_train, image, axis = 0)
+      y_train = np.append(y_train, label_image, axis = 0)
+    
     time.sleep(0.0001)
     pbar.update(1)
   
   pbar.close()
+  print('saving data...')
 
-  print('Saving the Data...')
+  np.save(f'raw_data/X_train.npy', X_train)
+  np.save(f'raw_data/y_train.npy', y_train)
 
-  np.save(f'{impath}/data/X_train.npy', X_train)
-  np.save(f'{impath}/data/y_train.npy', y_train)
-
-  print(f'Data is saved at {impath}/data/')
+  print(f'data is saved at directory raw_data/')
+  print('loading data...')
 
   return X_train, y_train
 
-
 def main():
-    impath = '/media/aditya/DATA/Test/Satellite Images/'
-    if os.path.isdir(f'{impath}/data') == False:
-        os.mkdir(f'{impath}/data')
-    CreateData()
+
+  IMG_HEIGHT = 2**7
+  IMG_WIDTH = 2**7
+  CHANNELS = 3
+  IMG_SIZE = (IMG_HEIGHT, IMG_WIDTH, CHANNELS)
+
+  CreateData(IMG_SIZE)
 
 if __name__ ==  '__main__':
   main()
