@@ -4,17 +4,6 @@ import time
 from tqdm import tqdm
 import numpy as np
 from cv2 import cv2
-
-def showImage(img, label = '', waitKey = 10**4):
-  img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-  print('press any button to close the window')
-  
-  if waitKey > 0:
-    print(f'displaying image for {waitKey/1000} s')
-  
-  cv2.imshow(label, img)
-  cv2.waitKey(waitKey)
-  cv2.destroyAllWindows()
   
 def CreateLabel(img):
   labeled_img = np.zeros((len(img), len(img[0,])))
@@ -71,7 +60,7 @@ def InvertLabel(labeled_img):
   Y = [255, 255, 0] #Yellow
   R = [255, 0, 0] #Red
 
-  pbar = tqdm(total = len(img), desc = 'Inverting Labels', unit = 'pixels')
+  pbar = tqdm(total = len(img), desc = 'Inverting Labels', unit = 'pixels', unit_scale = 2**12)
 
   for x in range(len(img)):
     for y in range(len(img[0,])):
