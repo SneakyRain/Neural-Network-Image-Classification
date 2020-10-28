@@ -2,6 +2,8 @@
 __pycache__/
 raw_data
 data
+model
+logs
 *.py[cod]
 *$py.class
 

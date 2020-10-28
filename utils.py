@@ -30,24 +30,34 @@ def crnt_time():
   current_time = current_time.strftime('%H-%M-%S')
   return current_time
 
-def SaveModel(model, time_stamp):
+from UNet import CreateUnet
+from fcn8 import Createfcn_8
+
+def SaveModel(model, time_stamp, model_name):
   
   print('saving model ...')
-  savepath = f'model/{time_stamp}/U-Net.hdf5'
+  savepath = f'model/{time_stamp}/{model_name}.hdf5'
   model.save(savepath)
   print(f'time stamp is {time_stamp}, note it down as it may be used in future to recover models.')
   print(f'model is saved at /model/{time_stamp}')
 
-def LoadModel(time_stamp):
+def LoadModel(time_stamp, model_name, weights = False, IMG_SIZE = None):
   
   print('loading model...')
-  savepath = f'model/{time_stamp}/U-Net.hdf5'
-  model = tf.keras.models.load_model(savepath)
+  if weights:
+    if model_name == 'U-Net':
+      model = CreateUnet(IMG_SIZE)
+      savepath = f'model/{time_stamp}/Weights/{model_name}-weight'
+      model.load_weights(savepath)
+  else:
+    savepath = f'model/{time_stamp}/{model_name}.hdf5'
+    model = tf.keras.models.load_model(savepath)
+
   return model
 
 def showImage(img, label = '', waitKey = 10**4):
 
-  img = cv2.resize(img, (2**10, 2**10))
+  img = cv2.resize(img, (1000, 1000))
   img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
   print('press any button to close the window')
   

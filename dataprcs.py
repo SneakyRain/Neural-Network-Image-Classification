@@ -6,7 +6,7 @@ import numpy as np
 from cv2 import cv2
   
 def CreateLabel(img):
-  labeled_img = np.zeros((len(img), len(img[0,])))
+  labeled_img = np.zeros((len(img), len(img[0,]), 6))
 
   LB = [0, 255, 255] #Light Blue
   DB = [0, 0, 255] #Dark Blue
@@ -30,17 +30,17 @@ def CreateLabel(img):
 
       # Label the image accordingly
       if np.prod(vegetation):
-        labeled_img[x, y] =  0
+        labeled_img[x, y, :] =  [1, 0, 0, 0, 0, 0]
       elif np.prod(building):
-        labeled_img[x, y] =  1
+        labeled_img[x, y, :] =  [0, 1, 0, 0, 0, 0]
       elif np.prod(trees):
-        labeled_img[x, y] =  2
+        labeled_img[x, y, :] =  [0, 0, 1, 0, 0, 0]
       elif np.prod(imperv_surf):
-        labeled_img[x, y] =  3
+        labeled_img[x, y, :] =  [0, 0, 0, 1, 0, 0]
       elif np.prod(car):
-        labeled_img[x, y] =  4
+        labeled_img[x, y, :] =  [0, 0, 0, 0, 1, 0]
       elif np.prod(clutter):
-        labeled_img[x, y] =  5
+        labeled_img[x, y, :] =  [0, 0, 0, 0, 0, 1]
     
     time.sleep(0.0001)
     pbar.update(1)
@@ -55,7 +55,7 @@ def InvertLabel(labeled_img):
 
   LB = [0, 255, 255] #Light Blue
   DB = [0, 0, 255] #Dark Blue
-  G = [0, 255, 9] #Green
+  G = [0, 255, 0] #Green
   W = [255, 255, 255] #White
   Y = [255, 255, 0] #Yellow
   R = [255, 0, 0] #Red
@@ -64,18 +64,20 @@ def InvertLabel(labeled_img):
 
   for x in range(len(img)):
     for y in range(len(img[0,])):
-      if labeled_img[x, y] ==  0:
+      if np.prod(labeled_img[x, y]) == 0:
         img[x, y, :] = LB
-      elif labeled_img[x, y] ==  1:
+      elif np.prod(labeled_img[x, y]) == 1:
         img[x, y, :] = DB 
-      elif labeled_img[x, y] ==  2:
+      elif np.prod(labeled_img[x, y]) == 2:
         img[x, y, :] = G 
-      elif labeled_img[x, y] == 3:
+      elif np.prod(labeled_img[x, y]) == 3:
         img[x, y, :] = W 
-      elif labeled_img[x, y] ==  4:
+      elif np.prod(labeled_img[x, y]) == 4:
         img[x, y, :] = Y 
-      elif labeled_img[x, y] == 5:
+      elif np.prod(labeled_img[x, y]) == 5:
         img[x, y, :] = R
+      # else:
+      #   img[x, y, :] = W
     time.sleep(0.0001)
     pbar.update(1)
   
@@ -94,6 +96,7 @@ def CreateData(IMG_SIZE):
       os.mkdir('data')
       os.mkdir('data/Label')
       os.mkdir('data/RGB')
+      raise Exception('no data to read from')
   
   (IMG_HEIGHT, IMG_WIDTH, CHANNELS) = IMG_SIZE
   numofSamp = int(2**24/(IMG_HEIGHT*IMG_WIDTH))
@@ -132,16 +135,16 @@ def CreateData(IMG_SIZE):
     
     if i ==0:
       X_train = image.reshape((numofSamp, IMG_HEIGHT, IMG_WIDTH, CHANNELS))
-      y_train = label_image.reshape((numofSamp, IMG_HEIGHT, IMG_WIDTH))
+      y_train = label_image.reshape((numofSamp, IMG_HEIGHT, IMG_WIDTH, 6))
     else:
       image = image.reshape((numofSamp, IMG_HEIGHT, IMG_WIDTH, CHANNELS))
-      label_image = label_image.reshape((numofSamp, IMG_HEIGHT, IMG_WIDTH))
+      label_image = label_image.reshape((numofSamp, IMG_HEIGHT, IMG_WIDTH, 6))
       X_train = np.append(X_train, image, axis = 0)
       y_train = np.append(y_train, label_image, axis = 0)
     
     time.sleep(0.0001)
     pbar.update(1)
-  
+
   pbar.close()
   print('saving data...')
 
@@ -155,8 +158,8 @@ def CreateData(IMG_SIZE):
 
 def main():
 
-  IMG_HEIGHT = 2**7
-  IMG_WIDTH = 2**7
+  IMG_HEIGHT = 2**8
+  IMG_WIDTH = 2**8
   CHANNELS = 3
   IMG_SIZE = (IMG_HEIGHT, IMG_WIDTH, CHANNELS)
 
