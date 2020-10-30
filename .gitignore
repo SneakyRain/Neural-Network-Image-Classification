@@ -1,6 +1,7 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 raw_data
+raw_data_1
 data
 model
 logs

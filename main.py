@@ -3,15 +3,11 @@ import numpy as np
 from cv2 import cv2
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
-from dataprcs import CreateLabel, InvertLabel, CreateData
+from dataprcs import CreateLabel, InvertLabel, CreateData, data_stream
 from utils import ignoreWarnings, useDevice, crnt_time, SaveModel, showImage
 from UNet import CreateUnet
 from fcn8 import Createfcn_8
-
-IMG_HEIGHT = 2**8
-IMG_WIDTH = 2**8
-CHANNELS = 3
-IMG_SIZE = (IMG_HEIGHT, IMG_WIDTH, CHANNELS)
+from settings import IMG_SIZE
 
 model_name = 'U-Net'
 
@@ -28,9 +24,7 @@ if os.path.isdir(f'model/{time_stamp}') == False:
 if os.path.isdir('logs') == False:
     os.mkdir('logs')
 
-X_train, y_train = CreateData(IMG_SIZE)
-
-# X_train, X_test, y_train, y_test = train_test_split(X_train, y_train)
+train_generator, test_generator, steps_per_epoch, validation_steps = data_stream()
 
 ignoreWarnings()
 useDevice('CPU')
@@ -46,5 +40,5 @@ checkPoint = tf.keras.callbacks.ModelCheckpoint(
 tensorBoard = tf.keras.callbacks.TensorBoard(log_dir = f'logs/')
 # earlyStop = tf.keras.callbacks.EarlyStopping(monitor = 'val_acc', patience = 3)
     
-model.fit(X_train, y_train, epochs = 50, shuffle = False, callbacks = [checkPoint, tensorBoard], validation_split = 0.3, use_multiprocessing = True)
+model.fit_generator(train_generator, validation_data = test_generator, steps_per_epoch = steps_per_epoch, validation_steps = validation_steps, epochs = 50, shuffle = False, callbacks = [checkPoint, tensorBoard])
 SaveModel(model, time_stamp, model_name)

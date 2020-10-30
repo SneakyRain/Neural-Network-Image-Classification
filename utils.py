@@ -4,6 +4,7 @@ import warnings
 from cv2 import cv2
 import tensorflow as tf
 from tensorflow.python.client import device_lib
+from settings import DISPLAY_HEIGHT, DISPLAY_WIDTH
 
 def ignoreWarnings():
   os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
@@ -30,7 +31,7 @@ def crnt_time():
   current_time = current_time.strftime('%H-%M-%S')
   return current_time
 
-from UNet import CreateUnet
+from UNetExtended import CreateUnetEx
 from fcn8 import Createfcn_8
 
 def SaveModel(model, time_stamp, model_name):
@@ -46,7 +47,7 @@ def LoadModel(time_stamp, model_name, weights = False, IMG_SIZE = None):
   print('loading model...')
   if weights:
     if model_name == 'U-Net':
-      model = CreateUnet(IMG_SIZE)
+      model = CreateUnetEx(IMG_SIZE)
       savepath = f'model/{time_stamp}/Weights/{model_name}-weight'
       model.load_weights(savepath)
   else:
@@ -57,7 +58,7 @@ def LoadModel(time_stamp, model_name, weights = False, IMG_SIZE = None):
 
 def showImage(img, label = '', waitKey = 10**4):
 
-  img = cv2.resize(img, (1000, 1000))
+  img = cv2.resize(img, (DISPLAY_HEIGHT, DISPLAY_WIDTH))
   img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
   print('press any button to close the window')
   

@@ -4,9 +4,28 @@ import time
 from tqdm import tqdm
 import numpy as np
 from cv2 import cv2
-  
+from sklearn.model_selection import train_test_split
+from settings import IMG_HEIGHT, IMG_WIDTH, CHANNELS, IMG_SIZE, CLASSES, numofSamp, batch_size, batches, test_size, RESIZE_HEIGHT, RESIZE_WIDTH
+
+def countBatches(path, file, batches):
+  file_count = 0
+  for batch in range(batches):
+    if f'{file}-batch-{batch}.npy' in os.listdir(path):
+      file_count = file_count + 1
+    else:
+      pass
+
+  return file_count
+
+def readImage(img_path, IMG_SIZE):
+  image = cv2.imread(img_path)
+  image = cv2.resize(image, (RESIZE_HEIGHT, RESIZE_WIDTH))
+  image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+  image = image.reshape((numofSamp, IMG_HEIGHT, IMG_WIDTH, CHANNELS))
+  return image
+
 def CreateLabel(img):
-  labeled_img = np.zeros((len(img), len(img[0,]), 6))
+  labeled_img = np.zeros((len(img), len(img[0,]), CLASSES))
 
   LB = [0, 255, 255] #Light Blue
   DB = [0, 0, 255] #Dark Blue
@@ -15,7 +34,7 @@ def CreateLabel(img):
   Y = [255, 255, 0] #Yellow
   R = [255, 0, 0] #Red
 
-  pbar = tqdm(total = len(img), desc = 'Labelling Images', unit = 'pixels', unit_scale = 2**12, disable = False, leave = False)
+  pbar = tqdm(total = len(img), desc = 'Labelling Images', unit = 'pixels', unit_scale = len(img[0,]), disable = False, leave = False)
 
   for x in range(len(img)):
     for y in range(len(img[0,])):
@@ -60,21 +79,21 @@ def InvertLabel(labeled_img):
   Y = [255, 255, 0] #Yellow
   R = [255, 0, 0] #Red
 
-  pbar = tqdm(total = len(img), desc = 'Inverting Labels', unit = 'pixels', unit_scale = 2**12)
+  pbar = tqdm(total = len(img), desc = 'Inverting Labels', unit = 'pixels', unit_scale = len(img[0,]))
 
   for x in range(len(img)):
     for y in range(len(img[0,])):
-      if np.prod(labeled_img[x, y]) == 0:
+      if labeled_img[x, y] == 0:
         img[x, y, :] = LB
-      elif np.prod(labeled_img[x, y]) == 1:
+      elif labeled_img[x, y] == 1:
         img[x, y, :] = DB 
-      elif np.prod(labeled_img[x, y]) == 2:
+      elif labeled_img[x, y] == 2:
         img[x, y, :] = G 
-      elif np.prod(labeled_img[x, y]) == 3:
+      elif labeled_img[x, y] == 3:
         img[x, y, :] = W 
-      elif np.prod(labeled_img[x, y]) == 4:
+      elif labeled_img[x, y] == 4:
         img[x, y, :] = Y 
-      elif np.prod(labeled_img[x, y]) == 5:
+      elif labeled_img[x, y] == 5:
         img[x, y, :] = R
       # else:
       #   img[x, y, :] = W
@@ -97,72 +116,82 @@ def CreateData(IMG_SIZE):
       os.mkdir('data/Label')
       os.mkdir('data/RGB')
       raise Exception('no data to read from')
-  
-  (IMG_HEIGHT, IMG_WIDTH, CHANNELS) = IMG_SIZE
-  numofSamp = int(2**24/(IMG_HEIGHT*IMG_WIDTH))
 
   impath = 'data'
   file_names = os.listdir(f'{impath}/Label/')
 
-  X_train = np.zeros((IMG_HEIGHT, IMG_WIDTH, CHANNELS))
-  y_train = np.zeros((IMG_HEIGHT, IMG_WIDTH))
+  pbar = tqdm(total = len(file_names)*batches, desc = 'Reading Data', unit = 'batch')
 
-  pbar = tqdm(total = len(file_names), desc = 'Reading Data', unit = 'files')
-
-  for file, i in zip(file_names, range(len(file_names))):
+  for file in file_names:
     #Preparing the X_train
     image_file = file.split('_')
     image_file[-1] = 'RGB.tif'
     image_file = ('_').join(image_file)
-    
-
-    if f'{image_file}.npy' in os.listdir('raw_data/RGB'):
-      image = np.load(f'raw_data/RGB/{image_file}.npy')
-    else:
+  
+    file_count = countBatches('raw_data/RGB', image_file, batches)
+    if file_count < batches:
       image = cv2.imread(f'{impath}/RGB/{image_file}')
-      image = cv2.resize(image, (2**12, 2**12))
+      image = cv2.resize(image, (RESIZE_HEIGHT, RESIZE_WIDTH))
       image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-      np.save(f'raw_data/RGB/{image_file}.npy', image)
-
-    if f'{file}.npy' in os.listdir('raw_data/Label'):
-      label_image = np.load(f'raw_data/Label/{file}.npy')
-    else:
+      image = image.reshape((numofSamp, IMG_HEIGHT, IMG_WIDTH, CHANNELS))
+      temp = 0      
+      for batch in range(batches):
+        if f'{image_file}-batch-{batch}.npy' in os.listdir('raw_data/RGB'):
+          pass
+        else:
+          batch_image = image[temp:temp+batch_size, :, :, :]
+          np.save(f'raw_data/RGB/{image_file}-batch-{batch}.npy', batch_image)
+        temp = temp + 1
+    
+    file_count = countBatches('raw_data/Label', file, batches)
+    
+    if file_count < batches:
       label_image = cv2.imread(f'{impath}/Label/{file}')
-      label_image = cv2.resize(label_image, (2**12, 2**12))
+      label_image = cv2.resize(label_image, (RESIZE_HEIGHT, RESIZE_WIDTH))
       label_image = cv2.cvtColor(label_image, cv2.COLOR_BGR2RGB)
       label_image = CreateLabel(label_image)
-      np.save(f'raw_data/Label/{file}.npy', label_image)
-    
-    if i ==0:
-      X_train = image.reshape((numofSamp, IMG_HEIGHT, IMG_WIDTH, CHANNELS))
-      y_train = label_image.reshape((numofSamp, IMG_HEIGHT, IMG_WIDTH, 6))
-    else:
-      image = image.reshape((numofSamp, IMG_HEIGHT, IMG_WIDTH, CHANNELS))
-      label_image = label_image.reshape((numofSamp, IMG_HEIGHT, IMG_WIDTH, 6))
-      X_train = np.append(X_train, image, axis = 0)
-      y_train = np.append(y_train, label_image, axis = 0)
-    
+      label_image = label_image.reshape((numofSamp, IMG_HEIGHT, IMG_WIDTH, CLASSES))
+      temp = 0
+      for batch in range(batches):
+        if f'{file}-batch-{batch}.npy' in os.listdir('raw_data/Label'):
+          pass
+        else:
+          batch_label = label_image[temp:temp+batch_size, :, :, :]
+          np.save(f'raw_data/Label/{file}-batch-{batch}.npy', batch_label)
+        temp = temp + 1
+
     time.sleep(0.0001)
-    pbar.update(1)
+    pbar.update(batches)
 
   pbar.close()
   print('saving data...')
 
-  np.save(f'raw_data/X_train.npy', X_train)
-  np.save(f'raw_data/y_train.npy', y_train)
-
   print(f'data is saved at directory raw_data/')
-  print('loading data...')
 
-  return X_train, y_train
+def data_generator(file_names):
+  # file_names = os.listdir(f'{impath}/raw_data/Label')
+  while True:    
+    for file in file_names:
+      image_file = file.split('_')
+      batch_info = image_file[-1].split('-')
+      batch_info[0] = 'RGB.tif'
+      image_file[-1] = ('-').join(batch_info)
+      image_file = ('_').join(image_file)
+
+      img = np.load(f'raw_data/RGB/{image_file}')
+      label = np.load(f'raw_data/Label/{file}')
+      yield img, label
+
+def data_stream(filepath = 'raw_data/Label'):
+  files = os.listdir(filepath)
+  train_files, test_files = train_test_split(files, test_size = test_size)
+  train_data_generator = data_generator(train_files)
+  test_data_generator = data_generator(test_files)
+  steps_per_epoch = len(train_files)
+  validation_steps = len(test_files)
+  return train_data_generator, test_data_generator, steps_per_epoch, validation_steps
 
 def main():
-
-  IMG_HEIGHT = 2**8
-  IMG_WIDTH = 2**8
-  CHANNELS = 3
-  IMG_SIZE = (IMG_HEIGHT, IMG_WIDTH, CHANNELS)
-
   CreateData(IMG_SIZE)
 
 if __name__ ==  '__main__':

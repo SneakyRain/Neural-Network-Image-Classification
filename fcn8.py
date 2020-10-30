@@ -2,6 +2,7 @@ import os
 import tensorflow as tf
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dropout, Conv2DTranspose, Add
 from utils import ignoreWarnings, useDevice
+from settings import IMG_SIZE
 
 def Createfcn_8(IMG_SIZE, base=4):
     
@@ -55,7 +56,7 @@ def Createfcn_8(IMG_SIZE, base=4):
 
     outputs = Conv2DTranspose(n_classes, kernel_size = (8, 8), strides = (8, 8), padding = 'same', activation = 'softmax')(u4_skip)
 
-    model = tf.keras.Model(inputs = inputs, outputs = outputs, name = model_name)
+    model = tf.keras.Model(inputs = [inputs], outputs = [outputs], name = model_name)
     model.compile(optimizer = tf.optimizers.Adam(1e-4), loss = 'categorical_crossentropy', metrics = ['acc'])
     # model.summary()
 
@@ -64,11 +65,6 @@ def Createfcn_8(IMG_SIZE, base=4):
 def main():
   ignoreWarnings()
   useDevice('CPU')
-
-  IMG_HEIGHT = 2**8
-  IMG_WIDTH = 2**8
-  CHANNELS = 3
-  IMG_SIZE = (IMG_HEIGHT, IMG_WIDTH, CHANNELS)
   
   fcn_8 = Createfcn_8(IMG_SIZE)
   fcn_8.summary()
