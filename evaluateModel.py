@@ -27,7 +27,7 @@ time_stamp = '23-33-59'
 
 model = LoadModel(time_stamp, model_name, weights = True, IMG_SIZE = IMG_SIZE)
 
-impath = 'data/RGB/top_potsdam_3_10_RGB.tif'
+impath = 'data/RGB/top_potsdam_6_10_RGB.tif'
 label_impath = 'raw_data/Label/top_potsdam_3_10_label.tif.npy'
 
 # X_test = np.load(impath)

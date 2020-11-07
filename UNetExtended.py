@@ -29,9 +29,9 @@ def CreateUnetEx(IMG_SIZE):
     c4 = Conv2D(512, (3, 3), activation = 'relu', kernel_initializer = 'he_normal', padding = 'same')(c4)
     p4 = MaxPooling2D((2, 2))(c4)
 
-    c5 = Conv2D(512, (3, 3), activation = 'relu', kernel_initializer = 'he_normal', padding = 'same')(p4)
+    c5 = Conv2D(1024, (3, 3), activation = 'relu', kernel_initializer = 'he_normal', padding = 'same')(p4)
     # c5 = Dropout(0.1)(c5)
-    c5 = Conv2D(512, (3, 3), activation = 'relu', kernel_initializer = 'he_normal', padding = 'same')(c5)
+    c5 = Conv2D(1024, (3, 3), activation = 'relu', kernel_initializer = 'he_normal', padding = 'same')(c5)
 
     # Expansive Path
 
