@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.layers import Conv2D, Dropout, MaxPooling2D, Conv2DTranspose, concatenate
 from utils import ignoreWarnings, useDevice
-from settings import IMG_SIZE
+from settings import IMG_SIZE, CLASSES
 
 def CreateUnet(IMG_SIZE):
 
@@ -60,7 +60,7 @@ def CreateUnet(IMG_SIZE):
   # c9 = Dropout(0.1)(c9)
   c9 = Conv2D(32, (3, 3), activation = 'relu', kernel_initializer = 'he_normal', padding = 'same')(c9)
 
-  outputs = Conv2D(6, (1, 1), activation = 'softmax')(c9)
+  outputs = Conv2D(CLASSES, (1, 1), activation = 'softmax')(c9)
 
   model = tf.keras.Model(inputs = [inputs], outputs = [outputs], name = 'U-Net')
   model.compile(optimizer = 'Adam', loss = 'categorical_crossentropy', metrics = ['acc'])

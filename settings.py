@@ -11,12 +11,12 @@ IMG_WIDTH = 2**9
 CHANNELS = 3
 IMG_SIZE = (IMG_HEIGHT, IMG_WIDTH, CHANNELS)
 
-RESIZE_HEIGHT = 2**12
-RESIZE_WIDTH = 2**12
+RESIZE_HEIGHT = 2**9
+RESIZE_WIDTH = 2**9
 
 numofSamp = int((RESIZE_HEIGHT*RESIZE_WIDTH)/(IMG_HEIGHT*IMG_WIDTH))
 
-batch_size = 8
+batch_size = 1
 batches = int(numofSamp/batch_size)
 
 test_size = 0.3
