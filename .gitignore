@@ -4,7 +4,6 @@ raw_data
 data
 model
 logs
-results
 *.py[cod]
 *$py.class
 
