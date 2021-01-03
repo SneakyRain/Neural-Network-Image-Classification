@@ -1,3 +1,19 @@
+#!/usr/bin/env python3
+# 
+# Author:
+#
+# - Aditya Bhardwaj <adityabhardwaj727@gmail.com> -- Logic and Code
+#
+# This code is the main file which performs semantic segmentation 
+# of satellite images. This work was done in partial fulfilment of the course
+# CE F417 (Application of AI in Civil Engineering), Civil Engeenering Department,
+# BITS Pilani, India
+# 
+# Data:
+# 2D Semantic Labeling Contest, ISPRS (International Society for Photogrammetry and Remote Sensing)
+# More details can be found at the link provided below
+# https://www2.isprs.org/commissions/comm2/wg4/benchmark/semantic-labeling/
+
 import os
 import numpy as np
 from cv2 import cv2
