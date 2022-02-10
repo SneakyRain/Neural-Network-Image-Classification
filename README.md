@@ -6,7 +6,7 @@ This repository containis code for semantic segmentation of satellite image. Eac
 
 Satellite Image             |  Label Image
 :-------------------------:|:-------------------------:
-<img src="./results/true-RGB.png" alt= "filter" width= "500">  | <img src="./results/true-label.png" alt= "filter" width= "500">
+<img src="./results/true-rgb.png" alt= "filter" width= "500">  | <img src="./results/true-label.png" alt= "filter" width= "500">
 
 ## Data
 - Data was used from 2D Semantic Labeling Contest conducted by [ISPRS](https://www.isprs.org/) (International Society for Photogrammetry and Remote Sensing). 
