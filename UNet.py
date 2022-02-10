@@ -3,6 +3,7 @@ import tensorflow as tf
 from tensorflow.keras.layers import Conv2D, Dropout, MaxPooling2D, Conv2DTranspose, concatenate
 from utils import ignoreWarnings, useDevice
 from settings import IMG_SIZE, CLASSES
+import pydot
 
 def CreateUnet(IMG_SIZE):
 
@@ -69,10 +70,11 @@ def CreateUnet(IMG_SIZE):
 
 def main():
   ignoreWarnings()
-  useDevice('CPU')
+  # useDevice('CPU')
   
   unet = CreateUnet(IMG_SIZE)
   unet.summary()
+  tf.keras.utils.plot_model(unet, to_file = 'model.png', dpi = 800)
 
 if __name__ == '__main__':
   main()
